@@ -1,0 +1,135 @@
+replicaCount: 2
+deploymentStrategy: RollingUpdate
+
+image:
+  repository: pellerex/RepoUniqueNormalisedIdentifier
+  pullPolicy: Always
+  tag: "v1.0.0"
+
+# Explicit ENVIRONMENT (PY-D21) — NOT NODE_ENV (the Django scaffold's leak). Lowercase so it
+# matches config.{env}.json and the app's Environment literal.
+env:
+  - name: "ENVIRONMENT"
+    value: "staging"
+  - name: "LOG_LEVEL"
+    value: "info"
+
+global:
+  envValuesFrom:
+    Runtime__IpAddress: status.podIP
+
+secretProviderClass:
+  enabled: <secret-provider-class-enabled>
+
+# CSI tmpfs file mount (PY-D6). The app reads secrets via pydantic-settings secrets_dir
+# pointed at this path; no secretObjects, so nothing is synced to a K8s Secret/etcd.
+volumes:
+  - name: RepoUniqueNormalisedIdentifier-keyvault-volume
+    csiSecretProviderClass: RepoUniqueNormalisedIdentifier-api-vault
+
+volumeMounts:
+  - name: RepoUniqueNormalisedIdentifier-keyvault-volume
+    readOnly: true
+    mountPath: /mnt/secrets-store
+
+# Writable emptyDir for the daily-rolling file sinks (must match config.{env}.json
+# log_file_directory). emptyDir is ephemeral - files complement stdout/App Insights,
+# they are not the durable store.
+logging:
+  directory: /var/log/app
+
+imagePullSecrets:
+  - name: image-pull-secret
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+# Pod hardening (P14 / PY-D20)
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container hardening (P14 / PY-D20)
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8890
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($http_origin ~* "^https?://((?:www\.pellerex\.com))$") {
+        set $cors "true";
+      }
+      if ($request_method = 'OPTIONS') {
+        set $cors "${cors}options";
+      }
+
+      if ($cors = "true") {
+        add_header 'Access-Control-Allow-Origin' "$http_origin" always;
+        add_header 'Access-Control-Allow-Methods' 'GET, PUT, POST, DELETE, PATCH, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'x-signalr-user-agent,x-requested-with,Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent' always;
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+      }
+
+      if ($cors = "trueoptions") {
+        add_header 'Access-Control-Allow-Origin' "$http_origin";
+        add_header 'Access-Control-Allow-Methods' 'GET, PUT, POST, DELETE, PATCH, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'x-signalr-user-agent,x-requested-with,Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent';
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'Content-Type' 'text/plain charset=UTF-8';
+        add_header 'Content-Length' 0;
+        return 204;
+      }
+
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: api.pellerex.com
+      paths:
+        - path: /Staging/RepoUniqueNormalisedIdentifier(/|$)(.*)
+          pathType: Prefix
+  defaultBackend:
+    service:
+
+# One process per pod; scale via replicas + requests/limits (P13 / PY-D14).
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

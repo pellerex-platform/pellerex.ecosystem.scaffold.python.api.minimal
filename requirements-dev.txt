@@ -1,0 +1,5 @@
+# Dev / CI dependencies — exact pins. Resolved against PyPI on 2026-07-14.
+-r requirements.txt
+pytest==8.4.2
+httpx==0.28.1          # FastAPI TestClient transport
+pip-audit==2.9.0       # supply-chain gate (P8 / PY-D20)

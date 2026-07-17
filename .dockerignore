@@ -1,0 +1,26 @@
+# Keep the build context small (P7 / PY-R8). The Django scaffold shipped none.
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+tests/
+.git/
+.gitignore
+.github/
+*.md
+.editorconfig
+.dockerignore
+Dockerfile
+infrastructure/
+start/
+secrets.example
+.DS_Store
+*.log

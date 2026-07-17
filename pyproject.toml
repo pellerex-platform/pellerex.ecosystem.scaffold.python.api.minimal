@@ -1,0 +1,16 @@
+[project]
+name = "repouniquenormalisedidentifier"
+version = "1.0.0"
+description = "A minimal, parity-complete FastAPI Managed API scaffold."
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

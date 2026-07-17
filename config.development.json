@@ -1,0 +1,7 @@
+{
+  "debug": true,
+  "log_level": "debug",
+  "log_file_enabled": true,
+  "log_file_directory": "logs",
+  "log_retention_days": 7
+}

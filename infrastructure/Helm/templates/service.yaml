@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "RepoUniqueNormalisedIdentifier.fullname" . }}
+  labels:
+    {{- include "RepoUniqueNormalisedIdentifier.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      # targetPort is the container's 8890 (PY-D5/P9) — pinned, not the <port-number> token.
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "RepoUniqueNormalisedIdentifier.selectorLabels" . | nindent 4 }}

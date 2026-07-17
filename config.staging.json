@@ -1,0 +1,8 @@
+{
+  "debug": false,
+  "log_level": "info",
+  "log_file_enabled": true,
+  "log_file_directory": "/var/log/app",
+  "log_retention_days": 31,
+  "azure_app_insights_connection_string": "<azure-app-insights-connection-string-in-staging>"
+}

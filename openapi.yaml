@@ -1,0 +1,109 @@
+# Root API spec — the Pellerex Standards scan checks /openapi.yaml (repo root) for its
+# HasApiSpec maturity signal. Keep this in sync with the routers under app/routers/.
+# (FastAPI also serves a generated spec at /openapi.json at runtime; this file exists so
+# the spec is discoverable in the repository itself.)
+openapi: 3.0.3
+info:
+  title: RepoUniqueNormalisedIdentifier
+  description: Pellerex managed API (Python / FastAPI minimal scaffold).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8890
+paths:
+  /health/startup:
+    get:
+      summary: Startup probe
+      tags: [Health]
+      responses:
+        "200":
+          description: Application has started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /health/live:
+    get:
+      summary: Liveness probe
+      tags: [Health]
+      responses:
+        "200":
+          description: Application is alive.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /health/ready:
+    get:
+      summary: Readiness probe
+      tags: [Health]
+      responses:
+        "200":
+          description: Configuration loaded; details report secret-mount state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /v1/hello:
+    get:
+      summary: Sample endpoint
+      tags: [Sample]
+      responses:
+        "200":
+          description: Sample response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelloResponse"
+  /v1/echo:
+    post:
+      summary: Sample validated input endpoint
+      tags: [Sample]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EchoRequest"
+      responses:
+        "200":
+          description: Echo response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EchoResponse"
+        "422":
+          description: Validation failure (missing, blank or oversized name).
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      additionalProperties: true
+    HelloResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        environment:
+          type: string
+        score:
+          type: integer
+    EchoRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+    EchoResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        name:
+          type: string
