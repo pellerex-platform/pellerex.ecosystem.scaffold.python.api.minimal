@@ -22,6 +22,10 @@ spec:
       {{- end }}
       labels:
         {{- include "RepoUniqueNormalisedIdentifier.selectorLabels" . | nindent 8 }}
+        # Stable product identity for the Pellerex portal Infra tab: the marketplace product
+        # GUID, substituted at repo-creation time. EngineeringOps matches pods by this label so
+        # discovery never depends on the repo / AppSpace naming scheme.
+        pellerex.io/product-id: "<marketplace-product-id>"
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
