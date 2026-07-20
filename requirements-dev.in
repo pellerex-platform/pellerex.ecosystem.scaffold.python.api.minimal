@@ -1,0 +1,9 @@
+# Direct dev / CI dependencies (the human-edited source of truth).
+#
+# requirements-dev.txt is the COMPILED lockfile (this file plus the runtime tree plus every
+# dev transitive, each pinned + hashed). Regenerate it after any change here with:
+#   pip-compile --generate-hashes --output-file=requirements-dev.txt requirements-dev.in
+-r requirements.in
+pytest==8.4.2
+httpx==0.28.1          # FastAPI TestClient transport
+pip-audit==2.9.0       # supply-chain gate (P8 / PY-D20)
