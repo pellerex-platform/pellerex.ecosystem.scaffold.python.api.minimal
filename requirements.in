@@ -1,0 +1,17 @@
+# Direct runtime dependencies (the human-edited source of truth — P8 / PY-D20).
+#
+# `azure-monitor-opentelemetry` pulls in the matched OpenTelemetry SDK + the bundled
+# FastAPI instrumentation (opentelemetry-instrumentation-fastapi), so the telemetry stack
+# is version-locked by the distro — do not pin those transitives here.
+#
+# requirements.txt is the COMPILED lockfile (this file plus every transitive dependency,
+# each pinned + hashed). Regenerate it after any change here with:
+#   pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+# (or `uv pip compile --generate-hashes requirements.in -o requirements.txt`).
+# CI runs pip-audit against the compiled requirements.txt, and AssetHealth's vulnerability
+# scan reads it too — so the pinned transitive tree is what gets scanned.
+fastapi==0.128.8
+uvicorn[standard]==0.39.0
+pydantic==2.13.4
+pydantic-settings==2.11.0
+azure-monitor-opentelemetry==1.8.8
