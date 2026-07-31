@@ -56,8 +56,8 @@ spec:
             {{- end }}
           ports:
             - name: http
-              # Hardcoded 8890 (PY-D5/P9) — NOT the <port-number> token, which resolves to 9000.
-              containerPort: 8890
+              # The <port-number> token (PY-D5/P9), provisioned to the platform port.
+              containerPort: <port-number>
               protocol: TCP
           # No Kubernetes probes (minimal contract) — reachability is proven via ProxyApi.
           volumeMounts:

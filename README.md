@@ -6,7 +6,7 @@ provisioning chain runs against it with no special-casing.
 
 ## What you get
 
-- **FastAPI + uvicorn** on port **8890** (`uvicorn app.main:app --host 0.0.0.0 --port 8890`).
+- **FastAPI + uvicorn** on port **<port-number>** (`uvicorn app.main:app --host 0.0.0.0 --port <port-number>`).
 - Health routes at the **root**: `/health/startup`, `/health/live`, `/health/ready` (no `/api`).
 - A sample router (`/v1/hello`, `/v1/echo`) with Pydantic request/response models.
 - Config via **pydantic-settings** (env + `config.{env}.json`), validated at boot (fail fast).
@@ -38,15 +38,15 @@ requirements.txt     pinned runtime deps
 
 ```bash
 ./start/setup-secrets.sh          # seeds ~/.pellerex/secrets/<product>/ from secrets.example (one file per secret)
-./start/run-local.sh              # http://127.0.0.1:8890 — reads secrets from the local mount (prod parity)
-curl http://127.0.0.1:8890/health/ready
+./start/run-local.sh              # http://127.0.0.1:<port-number> — reads secrets from the local mount (prod parity)
+curl http://127.0.0.1:<port-number>/health/ready
 ```
 
 ## Run in Docker
 
 ```bash
 ./start/run-docker.sh
-curl http://127.0.0.1:8890/health/ready
+curl http://127.0.0.1:<port-number>/health/ready
 ```
 
 ## Test
@@ -94,5 +94,5 @@ etcd, or process environment.
 `RepoUniqueNormalisedIdentifier`, `RepoUniqueIdentifier`, `<marketplace-product-id>`,
 `<{env}-namespace>`, `<{env}-keyvault-name>`, `<secret-provider-class-enabled>`,
 `<azure-app-insights-connection-string-in-{env}>`, `<target-branch>`, `<identity-id>`,
-`<tenant-id>` are substituted at `InstallRepoTemplate`. The container **port is hardcoded
-`8890`** — the `<port-number>` token resolves to `9000` and is intentionally not used.
+`<tenant-id>` are substituted at `InstallRepoTemplate`. The container **port is the
+`<port-number>` token**, provisioned platform-wide.
