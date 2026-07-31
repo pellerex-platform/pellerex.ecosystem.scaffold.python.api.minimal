@@ -39,13 +39,13 @@ COPY config.*.json ./
 
 USER appuser
 
-# uvicorn binds 8890 (PY-D5) — hardcoded, NOT the <port-number> token (which resolves to 9000).
-EXPOSE 8890
+# uvicorn binds the <port-number> token (PY-D5), provisioned to the platform port.
+EXPOSE <port-number>
 
 # HEALTHCHECK hits the root startup path (no /api), using only the stdlib (no extra dep).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD ["python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8890/health/startup', timeout=3).status==200 else 1)"]
+    CMD ["python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:<port-number>/health/startup', timeout=3).status==200 else 1)"]
 
 # One uvicorn process per pod; scale via K8s replicas (P13 / PY-D14). uvicorn[standard]
 # pulls uvloop + httptools for throughput, and drains in-flight requests on SIGTERM (P10).
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8890"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "<port-number>"]

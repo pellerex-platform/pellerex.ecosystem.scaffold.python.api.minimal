@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run the API locally on http://127.0.0.1:8890 (PY-D5).
+# Run the API locally on http://127.0.0.1:<port-number> (PY-D5).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -21,7 +21,7 @@ fi
 pip install --quiet --upgrade pip
 pip install --quiet --no-cache-dir -r requirements.txt -r requirements-dev.txt
 
-echo "Starting uvicorn (ENVIRONMENT=$ENVIRONMENT, SECRETS_MOUNT_PATH=$SECRETS_MOUNT_PATH) on :8890"
+echo "Starting uvicorn (ENVIRONMENT=$ENVIRONMENT, SECRETS_MOUNT_PATH=$SECRETS_MOUNT_PATH) on :<port-number>"
 # --reload-dir app: only watch application code — without it the watcher scans the
 # whole project (including .venv/) and package-file churn triggers endless reloads.
-exec uvicorn app.main:app --host 0.0.0.0 --port 8890 --reload --reload-dir app
+exec uvicorn app.main:app --host 0.0.0.0 --port <port-number> --reload --reload-dir app

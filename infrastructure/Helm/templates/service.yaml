@@ -8,7 +8,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      # targetPort is the container's 8890 (PY-D5/P9) — pinned, not the <port-number> token.
+      # targetPort is the container port (the <port-number> token).
       targetPort: {{ .Values.service.targetPort }}
       protocol: TCP
       name: http

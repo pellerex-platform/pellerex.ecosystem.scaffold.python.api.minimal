@@ -2,7 +2,7 @@
 
 Run with::
 
-    uvicorn app.main:app --host 0.0.0.0 --port 8890   # PY-D5
+    uvicorn app.main:app --host 0.0.0.0 --port <port-number>   # PY-D5
 
 Health routes are served at the **root** (``/health/{startup,live,ready}``) with no ``/api``
 prefix — the proxy bypasses auth + metering on exactly those three paths (P2 / PY-D12).
