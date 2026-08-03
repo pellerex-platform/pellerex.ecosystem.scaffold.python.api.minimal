@@ -2,8 +2,24 @@
 # Pellerex operator account. Referenced as a user handle (not a team) so the
 # same line works both here in the scaffold repo (pellerex-platform org) and
 # in every tenant repo after clone. The operator is a member of every org
-# Pellerex creates, so the reference resolves everywhere. The CODEOWNERS file
-# protects itself so this guard can't be removed in a single PR. Tenants
-# remain free to change everything else without approval from Pellerex.
-/infrastructure/     @pellerex-tech
-/.github/CODEOWNERS  @pellerex-tech
+# Pellerex creates, so the reference resolves everywhere. Tenants remain free
+# to change everything else (application source, tests, docs, app config)
+# without Pellerex approval.
+#
+# What's guarded and why:
+# - infrastructure/         Helm charts, K8s manifests, secret provider classes.
+# - .github/workflows/      CI/CD pipeline callers — swapping the reusable
+#                           workflow reference would bypass the Pellerex deploy
+#                           chain even if infrastructure/ is untouched.
+# - .github/CODEOWNERS      Self-guard so this file can't be removed in a
+#                           single PR to disable the whole guard.
+# - Dockerfile              Contract with the Helm chart — port, entrypoint,
+#                           runtime shape. If tenants change it, the platform
+#                           deploy assumptions break.
+# - .dockerignore           Controls what enters the image and thus what runs
+#                           in the cluster.
+/infrastructure/         @pellerex-tech
+/.github/workflows/      @pellerex-tech
+/.github/CODEOWNERS      @pellerex-tech
+/Dockerfile              @pellerex-tech
+/.dockerignore           @pellerex-tech
