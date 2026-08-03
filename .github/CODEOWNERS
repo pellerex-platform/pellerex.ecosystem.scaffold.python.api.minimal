@@ -1,0 +1,9 @@
+# Pellerex-owned paths — every PR touching these waits on review from the
+# Pellerex operator account. Referenced as a user handle (not a team) so the
+# same line works both here in the scaffold repo (pellerex-platform org) and
+# in every tenant repo after clone. The operator is a member of every org
+# Pellerex creates, so the reference resolves everywhere. The CODEOWNERS file
+# protects itself so this guard can't be removed in a single PR. Tenants
+# remain free to change everything else without approval from Pellerex.
+/infrastructure/     @pellerex-tech
+/.github/CODEOWNERS  @pellerex-tech
