@@ -16,8 +16,9 @@ provisioning chain runs against it with no special-casing.
   `log-<date>.log`/`.json` files + App Insights (the distro exports the `app` logger) —
   enriched with service name/version/environment and a per-request `X-Correlation-Id`.
 - Multi-stage **`python:3.12-slim`** Dockerfile (builder venv → clean slim runtime), non-root.
-- Helm chart (`Deployment`+`Service`+`Ingress`+`serviceaccount`, no k8s probes) with pod/container
+- Helm chart (`Deployment`+`Service`+`serviceaccount`, no k8s probes) with pod/container
   hardening: read-only root FS, dropped capabilities, `runAsNonRoot`, seccomp `RuntimeDefault`.
+  There is no `Ingress`: ProxyApi is the only front door to the product.
 - CI pipeline: `pip install` → `pip-audit` → `pytest` → docker build → push.
 
 ## Layout
