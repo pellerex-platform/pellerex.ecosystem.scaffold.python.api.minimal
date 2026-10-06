@@ -1,14 +1,5 @@
 1. The API listens on container port <port-number> (uvicorn) behind a ClusterIP Service on port 80.
-{{- if .Values.ingress.enabled }}
-2. It is reached through ProxyApi via the ingress paths:
-{{- range $host := .Values.ingress.hosts }}
-  {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
-  {{- end }}
-{{- end }}
-{{- else }}
 2. Port-forward to reach it locally:
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "RepoUniqueNormalisedIdentifier.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME <port-number>:<port-number>
   # then: curl http://127.0.0.1:<port-number>/health/ready
-{{- end }}

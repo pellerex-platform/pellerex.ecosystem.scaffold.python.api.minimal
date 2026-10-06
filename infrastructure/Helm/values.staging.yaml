@@ -73,46 +73,6 @@ service:
   port: 80
   targetPort: <port-number>
 
-ingress:
-  enabled: true
-  className: ""
-  annotations:
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      if ($http_origin ~* "^https?://((?:www\.pellerex\.com))$") {
-        set $cors "true";
-      }
-      if ($request_method = 'OPTIONS') {
-        set $cors "${cors}options";
-      }
-
-      if ($cors = "true") {
-        add_header 'Access-Control-Allow-Origin' "$http_origin" always;
-        add_header 'Access-Control-Allow-Methods' 'GET, PUT, POST, DELETE, PATCH, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'x-signalr-user-agent,x-requested-with,Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent' always;
-        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-      }
-
-      if ($cors = "trueoptions") {
-        add_header 'Access-Control-Allow-Origin' "$http_origin";
-        add_header 'Access-Control-Allow-Methods' 'GET, PUT, POST, DELETE, PATCH, OPTIONS';
-        add_header 'Access-Control-Allow-Headers' 'x-signalr-user-agent,x-requested-with,Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent';
-        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
-        add_header 'Access-Control-Max-Age' 1728000;
-        add_header 'Content-Type' 'text/plain charset=UTF-8';
-        add_header 'Content-Length' 0;
-        return 204;
-      }
-
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    kubernetes.io/ingress.class: nginx
-  hosts:
-    - host: api.pellerex.com
-      paths:
-        - path: /Staging/RepoUniqueNormalisedIdentifier(/|$)(.*)
-          pathType: Prefix
-  defaultBackend:
-    service:
-
 # One process per pod; scale via replicas + requests/limits (P13 / PY-D14).
 resources:
   requests:
