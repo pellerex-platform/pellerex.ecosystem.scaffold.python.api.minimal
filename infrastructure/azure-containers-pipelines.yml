@@ -63,13 +63,16 @@ steps:
         latest
         v1.0.0
 
-  - task: Docker@2
-    displayName: Push
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/<target-branch>')
-    inputs:
-      command: push
-      containerRegistry: "DockerHub"
-      repository: "$(dockerRepositoryName)"
-      tags: |
-        latest
-        v1.0.0
+  # Only the target branch pushes. On every other branch this step is left out of the
+  # pipeline, so a run there never asks for the DockerHub connection, which Azure DevOps gives
+  # to the target branch alone.
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/<target-branch>') }}:
+    - task: Docker@2
+      displayName: Push
+      inputs:
+        command: push
+        containerRegistry: "DockerHub"
+        repository: "$(dockerRepositoryName)"
+        tags: |
+          latest
+          v1.0.0
