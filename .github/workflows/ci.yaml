@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+# The build only reads the repository, so its token may do nothing else.
+permissions:
+  contents: read
+
 env:
   PROJECT_NAME: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
   DOCKER_REPOSITORY: pellerex/RepoUniqueNormalisedIdentifier
