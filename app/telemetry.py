@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import logging
 
+from app.logging_config import CorrelationIdFilter
+
 logger = logging.getLogger("app")
 
 
@@ -42,6 +44,11 @@ def configure_telemetry(connection_string: str | None, logger_name: str = "app")
         from azure.monitor.opentelemetry import configure_azure_monitor
 
         configure_azure_monitor(connection_string=connection_string, logger_name=logger_name)
+        # The exporter's handler sits on this logger and runs before the root sinks, so it
+        # needs the correlation filter itself: without it only the request line, which sets
+        # the id on its own record, would reach App Insights with the request's id.
+        for handler in logging.getLogger(logger_name).handlers:
+            handler.addFilter(CorrelationIdFilter())
         logger.info("Azure Monitor telemetry configured.")
         return True
     except Exception:  # pragma: no cover - defensive; never crash on telemetry wiring

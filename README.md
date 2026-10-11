@@ -73,9 +73,13 @@ three sinks like the .NET scaffold's Serilog:
    exporter to the `app` logger, so every `app.*` record also lands in App Insights
    (in-process, no collector).
 
-Every record carries `service.name` / `service.version` / `deployment.environment`; every
-request is logged with a correlation id (inbound `X-Correlation-Id` honoured, otherwise a
-UUID; always echoed on the response). Settings precedence: env var (`LOG_LEVEL`,
+Every record carries `service.name` / `service.version` / `deployment.environment`. Every
+request has a correlation id: an inbound `X-Correlation-Id` is taken as sent when it is at most
+128 characters of ASCII letters, digits, hyphens, underscores and dots, and any other, or none,
+is replaced with a new UUID. The id is always echoed on the response, and every record written
+while the request is served carries it as `CorrelationId`, in every sink.
+
+Settings precedence: env var (`LOG_LEVEL`,
 `LOG_FILE_ENABLED`, `LOG_FILE_DIRECTORY`, `LOG_RETENTION_DAYS`) > `config.{env}.json` > default.
 
 ## Config & secrets

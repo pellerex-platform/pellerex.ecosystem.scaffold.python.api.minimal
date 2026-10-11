@@ -36,16 +36,21 @@ FILE_PREFIX = "log-"
 
 
 class CorrelationIdFilter(logging.Filter):
-    """Stamps the request-scoped correlation id onto every record (empty outside requests).
+    """Stamps the request's correlation id onto every record written while it is served.
 
     ``CorrelationId`` (PascalCase) matches the .NET/Serilog property name the portal's
     Logs tab reads. Records that already carry it (the middleware request line sets it
-    via ``extra`` so the App Insights export sees it too) are left untouched.
+    via ``extra``) are left untouched, and a record written outside a request gets none.
+
+    A handler filter only reaches the records of the handler it is on. The root sinks get
+    this filter in :func:`configure_logging`; the App Insights handler, which sits on the
+    ``app`` logger and runs before them, gets it in :func:`app.telemetry.configure_telemetry`.
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
-        if not getattr(record, "CorrelationId", ""):
-            record.CorrelationId = get_correlation_id()
+        correlation_id = get_correlation_id()
+        if correlation_id and not getattr(record, "CorrelationId", ""):
+            record.CorrelationId = correlation_id
         return True
 
 
