@@ -7,7 +7,11 @@ provisioning chain runs against it with no special-casing.
 ## What you get
 
 - **FastAPI + uvicorn** on port **<port-number>** (`uvicorn app.main:app --host 0.0.0.0 --port <port-number>`).
-- Health routes at the **root**: `/health/startup`, `/health/live`, `/health/ready` (no `/api`).
+- Health routes at the **root**: `/health/startup`, `/health/live`, `/health/ready` (no `/api`),
+  answering `Healthy` (200) or `Unhealthy` (503) from a health test that runs once a minute
+  (`app/health_tester.py`) and writes one log line per test; calls to them write no request line.
+  A new app has nothing to test: give the tester a `HealthCheck` in `app/main.py`'s lifespan for
+  what the app cannot work without.
 - A sample router (`/v1/hello`, `/v1/echo`) with Pydantic request/response models.
 - Config via **pydantic-settings** (env + `config.{env}.json`), validated at boot (fail fast).
 - Secrets read from the **CSI tmpfs file mount** via `secrets_dir` — never env vars, never etcd.
@@ -16,7 +20,8 @@ provisioning chain runs against it with no special-casing.
   `log-<date>.log`/`.json` files + App Insights (the distro exports the `app` logger) —
   enriched with service name/version/environment and a per-request `X-Correlation-Id`.
 - Multi-stage **`python:3.12-slim`** Dockerfile (builder venv → clean slim runtime), non-root.
-- Helm chart (`Deployment`+`Service`+`serviceaccount`, no k8s probes) with pod/container
+- Helm chart (`Deployment`+`Service`+`serviceaccount`) whose Kubernetes checks take a pod out of
+  traffic after two failed health tests and restart it after five, with pod/container
   hardening: read-only root FS, dropped capabilities, `runAsNonRoot`, seccomp `RuntimeDefault`.
   There is no `Ingress`: ProxyApi is the only front door to the product.
 - CI pipeline: `pip install` → `pip-audit` → `pytest` → docker build → push.

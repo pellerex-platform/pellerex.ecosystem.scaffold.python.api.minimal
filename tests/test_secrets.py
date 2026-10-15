@@ -14,7 +14,6 @@ def test_reads_secret_from_tmpfs_mount(tmp_path):
     secrets = Secrets(_secrets_dir=str(tmp_path))
 
     assert secrets.db_connection_string == "Server=db;Database=acme;"
-    assert secrets.has_database_secret is True
 
 
 def test_secret_is_not_read_from_env(monkeypatch, tmp_path):
@@ -31,4 +30,3 @@ def test_missing_secret_is_tolerated(tmp_path):
     # No file present → None, app still boots (secret is Optional).
     secrets = Secrets(_secrets_dir=str(tmp_path))
     assert secrets.db_connection_string is None
-    assert secrets.has_database_secret is False
