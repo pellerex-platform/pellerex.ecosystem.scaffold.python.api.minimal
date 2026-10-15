@@ -59,7 +59,33 @@ spec:
               # The <port-number> token (PY-D5/P9), provisioned to the platform port.
               containerPort: <port-number>
               protocol: TCP
-          # No Kubernetes probes (minimal contract) — reachability is proven via ProxyApi.
+          # Kubernetes acts on the app's health test (app/health_tester.py), which runs once a
+          # minute. Startup: up to 2 minutes for the first test to finish, well inside the 5
+          # minutes the release waits for. Readiness: out of traffic after two failed checks in a
+          # row, about two minutes. Liveness: restarted after five, about 5 minutes, so a short
+          # outage of a database the app needs restarts nothing. An address that gives no answer
+          # within 5 seconds, the uptime checker's limit, has failed, so an app that hangs is
+          # taken out of traffic and then restarted.
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 5
           volumeMounts:
             # Writable /tmp so the read-only root filesystem still allows scratch writes.
             - name: tmp

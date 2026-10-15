@@ -10,6 +10,7 @@ prefix — the proxy bypasses auth + metering on exactly those three paths (P2 /
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -18,6 +19,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.config import get_secrets, get_settings
+from app.health_tester import HealthTester
 from app.logging_config import configure_logging
 from app.middleware import correlation_id_middleware
 from app.telemetry import configure_telemetry
@@ -45,10 +47,18 @@ async def lifespan(app: FastAPI):
     # Acquire shared resources here (DB pools, HTTP clients, ...). Touching get_secrets()
     # at startup surfaces a missing/misconfigured secret mount early rather than per-request.
     _ = get_secrets()
+    # The health test: straight away and then once a minute it tests every check given here,
+    # and the health routes answer from its last result. A new app has nothing to test. Add a
+    # check when the app gains something it cannot work without, for example its database:
+    #     HealthTester([HealthCheck(name="database", test=lambda: pool.execute("SELECT 1"))])
+    app.state.health_tester = HealthTester([])
+    health_test = asyncio.create_task(app.state.health_tester.run())
     yield
     # --- Shutdown (P10 / PY-D13) ---
     # uvicorn stops accepting connections and drains in-flight requests on SIGTERM, then runs
     # this block. Release the resources acquired above here.
+    health_test.cancel()
+    await asyncio.gather(health_test, return_exceptions=True)
     logger.info("Shutting down; releasing resources.")
 
 

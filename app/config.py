@@ -122,10 +122,6 @@ class Secrets(BaseSettings):
         # tmpfs file mount (PY-R13). `init_settings` is kept so tests can inject values.
         return (init_settings, file_secret_settings)
 
-    @property
-    def has_database_secret(self) -> bool:
-        return bool(self.db_connection_string)
-
 
 @lru_cache
 def get_settings() -> Settings:

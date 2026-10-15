@@ -16,33 +16,51 @@ paths:
       tags: [Health]
       responses:
         "200":
-          description: Application has started.
+          description: The first health test has finished, whatever it found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: "#/components/schemas/HealthAnswer"
+        "503":
+          description: The first health test has not finished yet.
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/HealthAnswer"
   /health/live:
     get:
       summary: Liveness probe
       tags: [Health]
       responses:
         "200":
-          description: Application is alive.
+          description: The last health test passed.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: "#/components/schemas/HealthAnswer"
+        "503":
+          description: The last health test failed, or none has finished yet. The reason is in the log only.
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/HealthAnswer"
   /health/ready:
     get:
       summary: Readiness probe
       tags: [Health]
       responses:
         "200":
-          description: Configuration loaded; details report secret-mount state.
+          description: The last health test passed.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: "#/components/schemas/HealthAnswer"
+        "503":
+          description: The last health test failed, or none has finished yet. The reason is in the log only.
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/HealthAnswer"
   /v1/hello:
     get:
       summary: Sample endpoint
@@ -75,9 +93,9 @@ paths:
           description: Validation failure (missing, blank or oversized name).
 components:
   schemas:
-    HealthStatus:
-      type: object
-      additionalProperties: true
+    HealthAnswer:
+      type: string
+      enum: [Healthy, Unhealthy]
     HelloResponse:
       type: object
       properties:
