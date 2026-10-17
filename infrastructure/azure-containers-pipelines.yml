@@ -54,12 +54,16 @@ steps:
       artifactName: "$(projectName)"
     displayName: "Upload Artifacts"
 
+  # The image is also tagged with the full commit it was built from, so a release can
+  # deploy this build by its own tag and a pod that restarts pulls that same image again,
+  # never a newer build. latest and v1.0.0 are still pushed as before.
   - task: Docker@2
     inputs:
       repository: "$(dockerRepositoryName)"
       command: "build"
       Dockerfile: "**/Dockerfile"
       tags: |
+        $(Build.SourceVersion)
         latest
         v1.0.0
 
@@ -74,5 +78,6 @@ steps:
         containerRegistry: "DockerHub"
         repository: "$(dockerRepositoryName)"
         tags: |
+          $(Build.SourceVersion)
           latest
           v1.0.0
