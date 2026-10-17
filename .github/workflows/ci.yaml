@@ -12,13 +12,15 @@ env:
   PROJECT_NAME: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
   DOCKER_REPOSITORY: pellerex/RepoUniqueNormalisedIdentifier
 
+# Both jobs name ubuntu-24.04 rather than ubuntu-latest, which GitHub moves to Ubuntu 26
+# from 19 Oct 2026. They stay on 24.04 until this build has been proven on Ubuntu 26.
 jobs:
   # The main branch builds the image and pushes it. The registry login is kept on the
   # ContainerRegistry environment, which GitHub hands to the main branch only, so a run on
   # any other branch cannot read it.
   build:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: ContainerRegistry
       deployment: false
@@ -59,7 +61,7 @@ jobs:
   # pushes nothing.
   build-without-publishing:
     if: github.ref != 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout (with LFS)
         uses: actions/checkout@v4

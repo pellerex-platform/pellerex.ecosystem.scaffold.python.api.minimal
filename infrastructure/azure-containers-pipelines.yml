@@ -1,8 +1,10 @@
 trigger:
   - <target-branch>
 
+# Named ubuntu-24.04 rather than ubuntu-latest, like the GitHub build in
+# .github/workflows/ci.yaml, until this build has been proven on Ubuntu 26.
 pool:
-  vmImage: "ubuntu-latest"
+  vmImage: "ubuntu-24.04"
 
 variables:
   - group: PipelineVariables
