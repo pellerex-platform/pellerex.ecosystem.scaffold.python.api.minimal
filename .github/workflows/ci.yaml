@@ -43,6 +43,9 @@ jobs:
           username: ${{ secrets.PELLEREX_DOCKER_CONTAINERREGISTRY_USERNAME }}
           password: ${{ secrets.PELLEREX_DOCKER_CONTAINERREGISTRY_TOKEN }}
 
+      # The image is also tagged with the full commit it was built from. CD deploys that
+      # tag, so each environment runs the image its release named, even after a pod
+      # restarts. latest and v1.0.0 are still pushed as before.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -50,6 +53,7 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
+            ${{ env.DOCKER_REPOSITORY }}:${{ github.sha }}
             ${{ env.DOCKER_REPOSITORY }}:latest
             ${{ env.DOCKER_REPOSITORY }}:v1.0.0
 
