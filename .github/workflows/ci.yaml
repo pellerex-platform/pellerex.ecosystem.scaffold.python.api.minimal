@@ -8,13 +8,67 @@ on:
 permissions:
   contents: read
 
+env:
+  PROJECT_NAME: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
+  DOCKER_REPOSITORY: pellerex/RepoUniqueNormalisedIdentifier
+
 jobs:
-  # The shared build, the same for every template: on the main branch it builds the image
-  # once and pushes it tagged with its commit (and latest and v1.0.0); on any other branch it
-  # only builds. CD deploys that commit's image to every environment.
+  # The main branch builds the image and pushes it. The registry login is kept on the
+  # ContainerRegistry environment, which GitHub hands to the main branch only, so a run on
+  # any other branch cannot read it.
   build:
-    uses: pellerex-platform/workflows/.github/workflows/ci.yaml@v2
-    with:
-      project_name: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
-      docker_repository: pellerex/RepoUniqueNormalisedIdentifier
-    secrets: inherit
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: ContainerRegistry
+      deployment: false
+    steps:
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Upload infrastructure artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_NAME }}
+          path: infrastructure/**
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.PELLEREX_DOCKER_CONTAINERREGISTRY_USERNAME }}
+          password: ${{ secrets.PELLEREX_DOCKER_CONTAINERREGISTRY_TOKEN }}
+
+      # The image is also tagged with the full commit it was built from. CD deploys that
+      # tag, so each environment runs the image its release named, even after a pod
+      # restarts. latest and v1.0.0 are still pushed as before.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REPOSITORY }}:${{ github.sha }}
+            ${{ env.DOCKER_REPOSITORY }}:latest
+            ${{ env.DOCKER_REPOSITORY }}:v1.0.0
+
+  # Any other branch builds the image to show that it builds. It has no registry login and
+  # pushes nothing.
+  build-without-publishing:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: false

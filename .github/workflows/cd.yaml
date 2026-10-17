@@ -10,40 +10,44 @@ permissions:
   id-token: write
   contents: read
 
-# Each environment deploys the image CI built from one commit: the shared deploy names that
-# commit's tag by default, the commit of the CI run that started this deploy or, for a run
-# started by hand, the commit it was started on. CI pushes that tag for main only, so start
-# a run by hand on main, once CI has finished for the commit.
+# Each environment deploys the image CI built from one commit, by that commit's tag: the
+# commit of the CI run that started this deploy or, for a run started by hand, the commit
+# it was started on. CI pushes that tag for main only, so start a run by hand on main,
+# once CI has finished for the commit. A pod that restarts pulls that same image again,
+# never a newer build.
 jobs:
   qualityassurance:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    uses: pellerex-platform/workflows/.github/workflows/cd.yaml@v2
+    uses: pellerex-platform/workflows/.github/workflows/cd.yaml@v1
     with:
       project_name: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
       helm_release_name: RepoUniqueIdentifier
       docker_repository: pellerex/RepoUniqueNormalisedIdentifier
       kubernetes_namespace: <qualityassurance-namespace>
       target_environment: qualityassurance
+      image_tag: ${{ github.event.workflow_run.head_sha || github.sha }}
     secrets: inherit
 
   staging:
     needs: qualityassurance
-    uses: pellerex-platform/workflows/.github/workflows/cd.yaml@v2
+    uses: pellerex-platform/workflows/.github/workflows/cd.yaml@v1
     with:
       project_name: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
       helm_release_name: RepoUniqueIdentifier
       docker_repository: pellerex/RepoUniqueNormalisedIdentifier
       kubernetes_namespace: <staging-namespace>
       target_environment: staging
+      image_tag: ${{ github.event.workflow_run.head_sha || github.sha }}
     secrets: inherit
 
   production:
     needs: staging
-    uses: pellerex-platform/workflows/.github/workflows/cd.yaml@v2
+    uses: pellerex-platform/workflows/.github/workflows/cd.yaml@v1
     with:
       project_name: Pellerex.Ecosystem.ManagedApi.RepoUniqueIdentifier
       helm_release_name: RepoUniqueIdentifier
       docker_repository: pellerex/RepoUniqueNormalisedIdentifier
       kubernetes_namespace: <production-namespace>
       target_environment: production
+      image_tag: ${{ github.event.workflow_run.head_sha || github.sha }}
     secrets: inherit
