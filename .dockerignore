@@ -11,7 +11,6 @@ env/
 .ruff_cache/
 .coverage
 htmlcov/
-tests/
 .git/
 .gitignore
 .github/
@@ -20,6 +19,8 @@ tests/
 .dockerignore
 Dockerfile
 infrastructure/
+# The Dockerfile's unit-tests stage runs tests/, and tests/test_chart.py reads the chart.
+!infrastructure/Helm/
 start/
 secrets.example
 .DS_Store

@@ -38,10 +38,21 @@ steps:
       pip-audit --strict --requirement requirements.txt
     displayName: "pip-audit (supply-chain gate)"
 
-  - script: |
-      . .venv/bin/activate
-      pytest -q
-    displayName: "Run tests"
+  # The unit tests run in the Dockerfile's unit-tests stage, as in the GitHub build. Their
+  # results and coverage are kept as the test-coverage artifact, which Pellerex reads after
+  # the build for the app's Test Coverage tab. The build stops after the upload when a test
+  # failed, so a build with a failing test publishes nothing.
+  - script: docker buildx build --target unit-test-results --output type=local,dest=$(Agent.TempDirectory)/unit-test-results .
+    displayName: "Run unit tests"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: "$(Agent.TempDirectory)/unit-test-results/test-coverage"
+      artifactName: "test-coverage"
+    displayName: "Upload test coverage"
+
+  - script: grep -qx 0 "$(Agent.TempDirectory)/unit-test-results/unit-tests-exit-code"
+    displayName: "Stop when a unit test failed"
 
   - task: CopyFiles@2
     inputs:
