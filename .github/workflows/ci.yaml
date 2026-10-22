@@ -30,6 +30,29 @@ jobs:
         with:
           lfs: true
 
+      # The unit tests run in the Dockerfile's unit-tests stage, so this file stays the same in
+      # every language. Their results and coverage are kept as the test-coverage artifact,
+      # which Pellerex reads after the build for the app's Test Coverage tab. The job stops
+      # after the upload when a test failed, so a build with a failing test publishes nothing.
+      # The results are written outside the checkout, so the image build's context stays as
+      # it was. The new steps name each action by its full commit (the version beside it).
+      - name: Run unit tests
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: .
+          file: Dockerfile
+          target: unit-test-results
+          outputs: type=local,dest=${{ runner.temp }}/unit-test-results
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: test-coverage
+          path: ${{ runner.temp }}/unit-test-results/test-coverage/
+
+      - name: Stop when a unit test failed
+        run: grep -qx 0 "${{ runner.temp }}/unit-test-results/unit-tests-exit-code"
+
       - name: Upload infrastructure artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -67,6 +90,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+
+      # The same unit tests as in the job above.
+      - name: Run unit tests
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: .
+          file: Dockerfile
+          target: unit-test-results
+          outputs: type=local,dest=${{ runner.temp }}/unit-test-results
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: test-coverage
+          path: ${{ runner.temp }}/unit-test-results/test-coverage/
+
+      - name: Stop when a unit test failed
+        run: grep -qx 0 "${{ runner.temp }}/unit-test-results/unit-tests-exit-code"
 
       - name: Build Docker image
         uses: docker/build-push-action@v5

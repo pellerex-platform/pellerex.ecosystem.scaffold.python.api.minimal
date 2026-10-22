@@ -24,7 +24,7 @@ provisioning chain runs against it with no special-casing.
   traffic after two failed health tests and restart it after five, with pod/container
   hardening: read-only root FS, dropped capabilities, `runAsNonRoot`, seccomp `RuntimeDefault`.
   There is no `Ingress`: ProxyApi is the only front door to the product.
-- CI pipeline: `pip install` → `pip-audit` → `pytest` → docker build → push.
+- CI pipeline: `pip install` → `pip-audit` → unit tests with coverage → docker build → push.
 
 ## Layout
 
@@ -62,6 +62,9 @@ pip install -r requirements-dev.txt
 pytest -q
 pip-audit --strict --requirement requirements.txt
 ```
+
+The build runs these tests with coverage in the Dockerfile's `unit-tests` stage and keeps the
+results as the `test-coverage` artifact; a failing test stops the build before the image is built.
 
 ## Logging (Serilog parity)
 

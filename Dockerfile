@@ -18,6 +18,37 @@ COPY requirements.txt ./
 RUN python -m venv "$VIRTUAL_ENV" \
     && pip install --no-cache-dir -r requirements.txt
 
+# ---- Unit tests: pytest with coverage, on the builder's venv plus the pinned dev tools ----
+# The build runs this stage before it builds the image (target unit-test-results); the
+# default build ends at the runtime stage and skips it. The RUN always succeeds and keeps
+# pytest's exit code in a file, so the results are kept when a test fails and the build
+# stops after uploading them. A build with no unit tests is not a failure, as in the other
+# templates: pytest answers 5 when it collects no tests, and that is written as 0.
+FROM builder AS unit-tests
+
+COPY requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+# What the tests read besides the app: pytest's settings (pyproject.toml), the config files
+# and the Helm chart (tests/test_chart.py).
+COPY pyproject.toml config.*.json ./
+COPY app ./app
+COPY tests ./tests
+COPY infrastructure/Helm ./infrastructure/Helm
+
+RUN mkdir -p /unit-test-results/test-coverage/unit-tests /unit-test-results/test-coverage/coverage \
+    && pytest \
+        --junit-xml=/unit-test-results/test-coverage/unit-tests/junit.xml \
+        --cov=app \
+        --cov-report=xml:/unit-test-results/test-coverage/coverage/coverage.xml; \
+    code=$?; \
+    if [ "$code" -eq 5 ]; then code=0; fi; \
+    echo "$code" > /unit-test-results/unit-tests-exit-code
+
+# ---- Unit test results: only the results, which the build exports and uploads ----
+FROM scratch AS unit-test-results
+COPY --from=unit-tests /unit-test-results /
+
 # ---- Runtime: clean slim image, copy only the venv + app (no build toolchain) ----
 FROM python:3.12-slim AS runtime
 
