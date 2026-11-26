@@ -48,6 +48,8 @@ requirements.txt     pinned runtime deps
 curl http://127.0.0.1:<port-number>/health/ready
 ```
 
+Swagger is at `http://localhost:<port-number>/docs` on your own computer only; `app/main.py` says how to show it elsewhere.
+
 ## Run in Docker
 
 ```bash

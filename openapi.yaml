@@ -1,7 +1,8 @@
 # Root API spec — the Pellerex Standards scan checks /openapi.yaml (repo root) for its
 # HasApiSpec maturity signal. Keep this in sync with the routers under app/routers/.
-# (FastAPI also serves a generated spec at /openapi.json at runtime; this file exists so
-# the spec is discoverable in the repository itself.)
+# (FastAPI also serves a generated spec at /openapi.json, but only on the developer's own
+# computer, where ENVIRONMENT is development: see app/main.py. This file exists so the spec
+# is discoverable in the repository itself.)
 openapi: 3.0.3
 info:
   title: RepoUniqueNormalisedIdentifier

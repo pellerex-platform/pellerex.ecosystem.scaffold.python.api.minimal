@@ -62,12 +62,20 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down; releasing resources.")
 
 
+# Swagger (/docs and /redoc) and the API description it reads (/openapi.json) answer only on
+# the developer's own computer (ENVIRONMENT=development), like the .NET template and the
+# platform's own services. To show them in another environment, change this line.
+show_swagger = settings.environment == "development"
+
 app = FastAPI(
     title="RepoUniqueNormalisedIdentifier",
     description="A minimal, parity-complete FastAPI Managed API scaffold.",
     version="1.0.0",
     debug=False,  # never leak stack traces in prod (P15 / PY-D21)
     lifespan=lifespan,
+    docs_url="/docs" if show_swagger else None,
+    redoc_url="/redoc" if show_swagger else None,
+    openapi_url="/openapi.json" if show_swagger else None,
 )
 
 # Correlation id + one structured request log line per request (PY-D7 parity).
